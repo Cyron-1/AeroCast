@@ -27,6 +27,17 @@ export default function RootLayout() {
             animation: 'slide_from_bottom',
           }}
         />
+
+        <Stack.Screen
+          name="forecast"
+          options={{
+            presentation: "transparentModal",
+            headerShown: false,
+            gestureEnabled: true,
+            fullScreenGestureEnabled: true,
+            animation: 'slide_from_bottom',
+          }}
+        />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

@@ -1,4 +1,7 @@
 import React from 'react';
+import { useState, useEffect } from 'react';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 import { StyleSheet, Text, View, ScrollView, Image, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -7,17 +10,38 @@ import Mask from '../assets/images/Mask.png';
 import Traffic from '../assets/images/Traffic.png';
 import Windows from '../assets/images/Windows.png';
 import Buildings from '../assets/images/Buildings.png';
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 export default function TipsScreen() {  // <-- default export
   const router = useRouter();
+  const [aqi, setAqi] = useState<number | null>(null);
+
+  useEffect(() => {
+    const docRef = doc(db, "aqi", "aqi");
+
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setAqi(docSnap.data().currentAqi);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const getAqiDetails = (value:number) => {
+    if (value > 50) return { boxColor: "#FFEEC3", color: "#461B00", bg: '#FFFAEE' };
+    return { boxColor: "#9FE9C2", color: "#00361C", bg: '#ECFFF5' };
+  };
+
+  const aqiDetails = aqi !== null ? getAqiDetails(aqi) : null;
 
   const advisories = [
     {
       id: '1',
       title: 'Wear Mask Outside',
       desc: 'Air pollution just elevated, wearing a mask to reduce exposure to harmful particles.',
-      color: '#5C0300',
-      bgColor: '#FFEEC3',
+      color: aqiDetails?.color || '#00361C',
+      bgColor: aqiDetails?.boxColor || '#9FE9C2',
       image: Mask,
       imageColor: '#FFBD71',
     },
@@ -25,8 +49,8 @@ export default function TipsScreen() {  // <-- default export
       id: '2',
       title: 'Avoid Traffic',
       desc: 'Stay away from busy roads to limit exposure to exhaust fumes.',
-      color: '#5C0300',
-      bgColor: '#FFEEC3',
+      color: aqiDetails?.color || '#00361C',
+      bgColor: aqiDetails?.boxColor || '#9FE9C2',
       image: Traffic,
       imageColor: '#FFBD71',
     },
@@ -34,8 +58,8 @@ export default function TipsScreen() {  // <-- default export
       id: '3',
       title: 'Keep Windows Closed',
       desc: 'Keeping windows closed helps prevent polluted air from entering indoors.',
-      color: '#5C0300',
-      bgColor: '#FFEEC3',
+      color: aqiDetails?.color || '#00361C',
+      bgColor: aqiDetails?.boxColor || '#9FE9C2',
       image: Windows,
       imageColor: '#FFBD71',
     },
@@ -66,7 +90,7 @@ export default function TipsScreen() {  // <-- default export
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.sheet}>
+      <View style={StyleSheet.flatten([styles.sheet, { backgroundColor: aqiDetails?.bg || '#ECFFF5' }])}>
         {/* Top Handle Decor */}
         <Pressable onPress={() => router.back()}>
           <View style={styles.handle} />
@@ -126,7 +150,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0)'
   },
   sheet: {
-    backgroundColor: '#FFFAEE',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     height: '95%',
