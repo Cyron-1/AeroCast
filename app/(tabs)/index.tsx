@@ -27,6 +27,18 @@ export default function Index() {
     mask: require('../../assets/images/Mask2.png'),
     leaf: require('../../assets/images/Leaf.png'),
   }
+
+  useEffect(() => {
+    const docRef = doc(db, "aqi", "aqi");
+
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setData(docSnap.data());
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
   
   const [fontsLoaded] = useFonts({
     'SF-Pro-Rounded-Regular': require('../../assets/fonts/SF-Pro-Rounded-Regular.otf'),
@@ -40,18 +52,6 @@ export default function Index() {
   if (!fontsLoaded) {
     return null;
   }
-
-  useEffect(() => {
-    const docRef = doc(db, "aqi", "aqi");
-
-    const unsubscribe = onSnapshot(docRef, (docSnap) => {
-      if (docSnap.exists()) {
-        setData(docSnap.data());
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   const getAqiDetails = (value:number) => {
     if (value > 50) return { label: "Unhealthy Air Quality!", color: "#461B00", forest: forestImages.bad, terrain: "#D1BA4B", sky: '#FBE5AD', star: starImages.bad, tipsCardColor: '#FFBD71', tips: "Caution!", item: itemImages.mask, forecastCardColor: '#B38829', title: "a bit hazy." };
